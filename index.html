@@ -360,7 +360,11 @@ async function buildOfflineVersion() {
     doneCount=3; renderSteps(3);
 
     const pageHtml = await fetch(window.location.href).then(r => r.text());
-    const workerB64 = btoa(unescape(encodeURIComponent(workerJs)));
+    // Encode worker as JSON string — safe against backticks, backslashes, etc.
+    const workerEncoded = JSON.stringify(workerJs);
+
+    // Inline worker setup: decode JSON string → Blob → object URL at runtime
+    const workerSetup = `var _w=${workerEncoded};var _b=new Blob([_w],{type:'application/javascript'});pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(_b);`;
 
     let offline = pageHtml
       .replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/g, '')
@@ -374,7 +378,7 @@ async function buildOfflineVersion() {
       )
       .replace(
         `pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';`,
-        `pdfjsLib.GlobalWorkerOptions.workerSrc = 'data:application/javascript;base64,${workerB64}';`
+        workerSetup
       )
       .replace(/<!-- OFFLINE-SECTION-START -->[\s\S]*?<!-- OFFLINE-SECTION-END -->/g, '');
 
