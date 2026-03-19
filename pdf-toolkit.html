@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg:#f7f5f2;--surface:#fff;--surface2:#f2f0ec;--border:#e8e4de;--border2:#d8d3cb;
+  --text:#1a1816;--text2:#6b6460;--text3:#a09890;
+  --accent:#e05a2b;--accent-l:#fdf0eb;--accent-d:#b84320;
+  --green:#2a9d5c;--green-l:#eaf7f0;
+  --blue:#2563eb;--blue-l:#eff4ff;
+  --purple:#7c3aed;--purple-l:#f5f3ff;
+  --r:16px;--rs:10px;--sh:0 8px 32px rgba(0,0,0,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center}
+nav{width:100%;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.nav-logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.nav-logo-text{font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
+.nav-back{display:none;align-items:center;gap:6px;font-size:.85rem;font-weight:600;color:var(--text2);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .15s,color .15s}
+.nav-back:hover{background:var(--surface2);color:var(--text)}
+.nav-back.visible{display:flex}
+.nav-privacy{font-size:.75rem;font-weight:600;color:var(--text3);display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;background:var(--green);border-radius:50%}
+.screen{display:none;width:100%;max-width:720px;padding:2.5rem 1.5rem 5rem}
+.screen.active{display:block}
+.hero{text-align:center;margin-bottom:2.5rem}
+.hero h1{font-size:2.2rem;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-bottom:.6rem}
+.hero p{font-size:1rem;color:var(--text2);line-height:1.6}
+.hl{color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;position:relative;overflow:hidden}
+.card:hover:not(.soon){transform:translateY(-3px);box-shadow:var(--sh);border-color:var(--border2)}
+.card.soon{cursor:default;opacity:.5}
+.card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:1rem}
+.card-icon.c1{background:var(--accent-l)}.card-icon.c2{background:var(--blue-l)}.card-icon.c3{background:var(--surface2)}
+.card h3{font-size:1rem;font-weight:700;margin-bottom:.3rem}
+.card p{font-size:.82rem;color:var(--text2);line-height:1.5}
+.soon-badge{position:absolute;top:12px;right:12px;font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--surface2);color:var(--text3);padding:3px 8px;border-radius:20px}
+.offline-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem;display:flex;align-items:flex-start;gap:1.25rem;margin-bottom:2rem}
+.offline-icon{width:48px;height:48px;flex-shrink:0;background:var(--purple-l);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.offline-body strong{font-size:.9rem;font-weight:700;display:block;margin-bottom:.25rem}
+.offline-body p{font-size:.78rem;color:var(--text2);line-height:1.55;margin-bottom:.75rem}
+.btn-offline{padding:.65rem 1.2rem;background:var(--purple-l);color:var(--purple);border:1.5px solid #ddd6fe;border-radius:var(--rs);font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:background .15s,border-color .15s}
+.btn-offline:hover:not(:disabled){background:#ede9fe;border-color:var(--purple)}
+.btn-offline:disabled{opacity:.6;cursor:not-allowed}
+.offline-steps{margin-top:.6rem}
+.ostep{font-size:.78rem;padding:2px 0}
+.ostep.done{color:var(--green)}.ostep.active{color:var(--purple);font-weight:700}.ostep.pending{color:var(--text3)}
+.tool-header{margin-bottom:2rem}
+.tool-header h2{font-size:1.6rem;font-weight:800;letter-spacing:-.025em;margin-bottom:.3rem}
+.tool-header p{font-size:.9rem;color:var(--text2)}
+.drop{border:2.5px dashed var(--border2);border-radius:var(--r);padding:3rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);margin-bottom:1.25rem}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-l)}
+.drop.ok{border-color:var(--green);background:var(--green-l);border-style:solid}
+.drop.multi:hover,.drop.multi.over{border-color:var(--blue);background:var(--blue-l)}
+.drop-icon{width:56px;height:56px;border-radius:14px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1rem;transition:background .2s}
+.drop:hover .drop-icon,.drop.over .drop-icon{background:var(--accent)}
+.drop.ok .drop-icon{background:var(--green)}
+.drop.multi:hover .drop-icon,.drop.multi.over .drop-icon{background:var(--blue)}
+.drop h3{font-size:1rem;font-weight:700;margin-bottom:.3rem}
+.drop p{font-size:.82rem;color:var(--text2)}
+input[type=file]{display:none}
+.pills{display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.pill{flex:1;min-width:100px;border:2px solid var(--border);border-radius:12px;padding:.85rem 1rem;text-align:center;cursor:pointer;background:var(--surface);transition:all .15s}
+.pill:hover{border-color:var(--accent)}
+.pill.on{border-color:var(--accent);background:var(--accent-l)}
+.pill b{font-size:.85rem;font-weight:700;display:block;margin-bottom:2px}
+.pill small{font-size:.72rem;color:var(--text2)}
+.pill.on small{color:var(--accent)}
+.size-row{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1.1rem}
+.size-row label{font-size:.85rem;font-weight:600;flex:1}
+.size-row span{font-size:.8rem;color:var(--text2)}
+.size-row input{width:72px;text-align:center;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;font-weight:700;padding:.4rem .6rem;background:var(--bg);color:var(--text)}
+.size-row input:focus{outline:none;border-color:var(--accent)}
+.btn{width:100%;padding:1.1rem;background:var(--accent);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;transition:background .15s,transform .1s}
+.btn:hover:not(:disabled){background:var(--accent-d)}
+.btn:active:not(:disabled){transform:scale(.98)}
+.btn:disabled{background:var(--surface2);color:var(--text3);cursor:not-allowed}
+.btn.blue{background:var(--blue)}.btn.blue:hover:not(:disabled){background:#1d4fd8}.btn.blue:disabled{background:var(--surface2);color:var(--text3)}
+.prog{margin-top:1.5rem;display:none}
+.prog.on{display:block}
+.prog-lbl{font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:.5rem;display:flex;justify-content:space-between}
+.prog-track{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-bottom:1.25rem}
+.prog-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .35s ease;width:0}
+.prog-fill.blue{background:var(--blue)}
+.result{display:none;background:var(--green-l);border:2px solid var(--green);border-radius:var(--r);padding:1.5rem;margin-top:1.25rem;text-align:center}
+.result.on{display:block}
+.result-emoji{font-size:2rem;margin-bottom:.5rem}
+.result h3{font-size:1.1rem;font-weight:800;color:var(--green);margin-bottom:.25rem}
+.stats{display:flex;justify-content:center;gap:2rem;margin:1rem 0;flex-wrap:wrap}
+.stat-lbl{font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.stat-val{font-size:1.2rem;font-weight:800;color:var(--text)}
+.btn-dl{display:flex;align-items:center;justify-content:center;gap:8px;padding:.9rem 2rem;background:var(--green);color:#fff;border:none;border-radius:var(--rs);font-family:inherit;font-size:.95rem;font-weight:800;cursor:pointer;transition:background .15s;width:100%}
+.btn-dl:hover{background:#218a4a}
+.file-list{margin-bottom:1.25rem}
+.fitem{display:flex;align-items:center;gap:.75rem;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.75rem 1rem;margin-bottom:.5rem;cursor:grab;user-select:none;transition:box-shadow .15s}
+.fitem:active{cursor:grabbing}
+.fitem.dragging{opacity:.4}
+.fitem.dtarget{border-color:var(--blue);background:var(--blue-l)}
+.fitem-icon{width:36px;height:36px;background:var(--blue-l);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fitem-name{font-size:.85rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fitem-size{font-size:.75rem;color:var(--text3);flex-shrink:0}
+.fitem-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:1rem;padding:4px;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0}
+.fitem-del:hover{color:var(--accent);background:var(--accent-l)}
+.drag-handle{color:var(--text3);font-size:1rem;cursor:grab}
+.add-more{width:100%;padding:.7rem;background:var(--surface);border:2px dashed var(--border2);border-radius:10px;font-family:inherit;font-size:.85rem;font-weight:700;color:var(--text2);cursor:pointer;transition:all .15s;margin-bottom:1.25rem}
+.add-more:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l)}
+.tip{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:.85rem 1rem;font-size:.8rem;color:var(--text2);display:flex;gap:8px;align-items:flex-start;margin-bottom:1.25rem}
+.footer{text-align:center;font-size:.78rem;color:var(--text3);margin-top:2.5rem;line-height:1.7}
+.footer strong{color:var(--text2)}
+@media(max-width:520px){.offline-card{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#" onclick="goHome();return false">
+    <div class="nav-logo-icon">&#128196;</div>
+    <span class="nav-logo-text">PDF Toolkit</span>
+  </a>
+  <button class="nav-back" id="navBack" onclick="goHome()">&#8592; All tools</button>
+  <div class="nav-privacy"><span class="dot"></span> 100% private</div>
+</nav>
+
+<!-- HOME -->
+<div class="screen active" id="sHome">
+  <div class="hero">
+    <h1>PDF tools that <span class="hl">just work</span></h1>
+    <p>Pick a tool below &mdash; your files never leave your device.</p>
+  </div>
+  <div class="grid">
+    <div class="card" onclick="go('sCompress')">
+      <div class="card-icon c1">&#128288;</div>
+      <h3>Compress</h3>
+      <p>Make a PDF smaller so it&rsquo;s easy to email or upload</p>
+    </div>
+    <div class="card" onclick="go('sMerge')">
+      <div class="card-icon c2">&#128279;</div>
+      <h3>Merge</h3>
+      <p>Combine several PDFs into one single file</p>
+    </div>
+    <div class="card soon">
+      <span class="soon-badge">Coming soon</span>
+      <div class="card-icon c3">&#9986;</div>
+      <h3>Split</h3>
+      <p>Pull individual pages out of a PDF</p>
+    </div>
+    <div class="card soon">
+      <span class="soon-badge">Coming soon</span>
+      <div class="card-icon c3">&#128260;</div>
+      <h3>Rotate</h3>
+      <p>Fix pages that are sideways or upside down</p>
+    </div>
+  </div>
+
+  <!-- OFFLINE-SECTION-START -->
+  <div class="offline-card">
+    <div class="offline-icon">&#128190;</div>
+    <div class="offline-body">
+      <strong>Need to use this without internet?</strong>
+      <p>Click below to download a copy that works forever on any computer &mdash; even offline. Your files never touch any server.</p>
+      <button class="btn-offline" id="offlineBtn" onclick="buildOffline()">&#8595; Download offline version</button>
+      <div class="offline-steps" id="offlineSteps"></div>
+    </div>
+  </div>
+  <!-- OFFLINE-SECTION-END -->
+
+  <div class="footer">
+    <strong>Your files stay on your device.</strong><br>
+    Nothing is uploaded. No account needed. Completely free.
+  </div>
+</div>
+
+<!-- COMPRESS -->
+<div class="screen" id="sCompress">
+  <div class="tool-header">
+    <h2>&#128288; Compress PDF</h2>
+    <p>Shrink your PDF so it&rsquo;s easy to share</p>
+  </div>
+  <div class="drop" id="cDrop">
+    <div class="drop-icon">&#128196;</div>
+    <h3 id="cTitle">Drop your PDF here</h3>
+    <p id="cSub">or click to choose a file</p>
+  </div>
+  <input type="file" id="cInput" accept=".pdf">
+  <p style="font-size:.82rem;font-weight:700;color:var(--text2);margin-bottom:.6rem">How small do you need it?</p>
+  <div class="pills" id="pills">
+    <div class="pill" data-q="92" data-dpi="150" onclick="pickQ(this)"><b>Best quality</b><small>Slightly smaller</small></div>
+    <div class="pill on"  data-q="82" data-dpi="120" onclick="pickQ(this)"><b>Balanced &#10003;</b><small>Smaller &amp; clear</small></div>
+    <div class="pill" data-q="65" data-dpi="96"  onclick="pickQ(this)"><b>Smallest file</b><small>Good enough to read</small></div>
+  </div>
+  <div class="size-row">
+    <label>&#128207; Keep file under</label>
+    <input type="number" id="cMax" value="20" min="1" max="500">
+    <span>MB</span>
+  </div>
+  <button class="btn" id="cBtn" disabled onclick="runCompress()">Compress PDF</button>
+  <div class="prog" id="cProg">
+    <div class="prog-lbl"><span id="cLbl">Working...</span><span id="cPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="cBar"></div></div>
+  </div>
+  <div class="result" id="cResult">
+    <div class="result-emoji">&#127881;</div>
+    <h3>All done!</h3>
+    <div class="stats">
+      <div><div class="stat-lbl">Before</div><div class="stat-val" id="cBefore">-</div></div>
+      <div><div class="stat-lbl">After</div><div class="stat-val" id="cAfter">-</div></div>
+      <div><div class="stat-lbl">Saved</div><div class="stat-val" id="cSaved">-</div></div>
+    </div>
+    <button class="btn-dl" id="cDl">&#8595; Save compressed PDF</button>
+  </div>
+  <div class="footer">Your file is processed in your browser only.</div>
+</div>
+
+<!-- MERGE -->
+<div class="screen" id="sMerge">
+  <div class="tool-header">
+    <h2>&#128279; Merge PDFs</h2>
+    <p>Combine multiple PDFs into one &mdash; drag to reorder</p>
+  </div>
+  <div class="drop multi" id="mDrop">
+    <div class="drop-icon">&#128194;</div>
+    <h3>Drop PDFs here</h3>
+    <p>or click to choose files &mdash; add as many as you like</p>
+  </div>
+  <input type="file" id="mInput" accept=".pdf" multiple>
+  <div class="file-list" id="mList"></div>
+  <button class="add-more" id="mAdd" style="display:none" onclick="document.getElementById('mInput').click()">+ Add more files</button>
+  <div class="tip" id="mTip" style="display:none"><span>&#128161;</span><span>Drag files up or down to change the order they appear in the merged PDF.</span></div>
+  <button class="btn blue" id="mBtn" disabled onclick="runMerge()">Merge into one PDF</button>
+  <div class="prog" id="mProg">
+    <div class="prog-lbl"><span id="mLbl">Working...</span><span id="mPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill blue" id="mBar"></div></div>
+  </div>
+  <div class="result" id="mResult">
+    <div class="result-emoji">&#127881;</div>
+    <h3>All done!</h3>
+    <div class="stats">
+      <div><div class="stat-lbl">Pages merged</div><div class="stat-val" id="mPages">-</div></div>
+      <div><div class="stat-lbl">Files combined</div><div class="stat-val" id="mCount">-</div></div>
+      <div><div class="stat-lbl">Total size</div><div class="stat-val" id="mSize">-</div></div>
+    </div>
+    <button class="btn-dl" id="mDl">&#8595; Save merged PDF</button>
+  </div>
+  <div class="footer">Your files are processed in your browser only.</div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('navBack').classList.add('visible');
+  window.scrollTo(0,0);
+}
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('sHome').classList.add('active');
+  document.getElementById('navBack').classList.remove('visible');
+  window.scrollTo(0,0);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmt(bytes) {
+  var mb = bytes/1024/1024;
+  return mb < 0.1 ? (bytes/1024).toFixed(0)+' KB' : mb.toFixed(2)+' MB';
+}
+function dl(bytes, name, mime) {
+  var b = new Blob([bytes],{type:mime});
+  var u = URL.createObjectURL(b);
+  var a = document.createElement('a');
+  a.href=u; a.download=name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
+}
+
+// ── Offline builder ───────────────────────────────────────────────────────────
+async function buildOffline() {
+  var btn = document.getElementById('offlineBtn');
+  var el  = document.getElementById('offlineSteps');
+  btn.disabled = true;
+
+  var steps = ['Downloading PDF reader...','Downloading PDF worker...','Downloading PDF builder...','Building your file...'];
+  var done  = 0;
+
+  function show(active) {
+    el.innerHTML = steps.map(function(s,i){
+      var cls  = i<done?'done':i===active?'active':'pending';
+      var icon = i<done?'checkmark':i===active?'...':'o';
+      if(i<done) icon='&#10003;';
+      else if(i===active) icon='&#9203;';
+      else icon='&#9900;';
+      return '<div class="ostep '+cls+'">'+icon+' '+s+'</div>';
+    }).join('');
+  }
+
+  try {
+    show(0);
+    var pdfjs  = await fetch('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js').then(function(r){return r.text()});
+    done=1; show(1);
+    var worker = await fetch('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js').then(function(r){return r.text()});
+    done=2; show(2);
+    var jspdf  = await fetch('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(function(r){return r.text()});
+    done=3; show(3);
+
+    // Read live DOM — avoids fetch+encoding issues entirely
+    var src = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+    // Escape any </script> inside library source so the HTML parser
+    // does not terminate the script block early (causes syntax errors)
+    function esc(s) { return s.split('<\/script>').join('<\\\/script>'); }
+
+    // Build tag strings safely — cannot write </script> literally here
+    var OPEN  = '\x3Cscript\x3E';
+    var CLOSE = '\x3C\/script\x3E';
+
+    // Worker runs from an inline Blob — no external file needed
+    var workerLine = 'pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob(['
+      + JSON.stringify(worker) + '],{type:"application\/javascript"}));';
+
+    src = src
+      // Remove Google Fonts link
+      .replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/g, '')
+      // Inline pdf.js
+      .replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>', OPEN+esc(pdfjs)+CLOSE)
+      // Inline jspdf
+      .replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>', OPEN+esc(jspdf)+CLOSE)
+      // Replace CDN worker URL with inline Blob
+      .replace("pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';", workerLine)
+      // Remove offline section from the downloaded copy
+      .replace(/<!-- OFFLINE-SECTION-START -->[\s\S]*?<!-- OFFLINE-SECTION-END -->/g, '');
+
+    done=4; show(-1);
+    dl(new TextEncoder().encode(src), 'pdf-toolkit-offline.html', 'text/html');
+    btn.textContent = 'Downloaded!';
+    btn.disabled = false;
+
+  } catch(err) {
+    el.innerHTML = '<div class="ostep" style="color:var(--accent)">&#10060; Something went wrong. Check your internet and try again.<br><small>'+err.message+'</small></div>';
+    btn.disabled = false;
+  }
+}
+
+// ── Compress ──────────────────────────────────────────────────────────────────
+var cFile=null, cBytes=null, cName='';
+
+var cDrop=document.getElementById('cDrop');
+var cInput=document.getElementById('cInput');
+cDrop.addEventListener('click',function(){cInput.click()});
+cDrop.addEventListener('dragover',function(e){e.preventDefault();cDrop.classList.add('over')});
+cDrop.addEventListener('dragleave',function(){cDrop.classList.remove('over')});
+cDrop.addEventListener('drop',function(e){
+  e.preventDefault();cDrop.classList.remove('over');
+  var f=e.dataTransfer.files[0];
+  if(f&&f.name.toLowerCase().endsWith('.pdf')) setC(f);
+});
+cInput.addEventListener('change',function(){if(cInput.files[0]) setC(cInput.files[0])});
+
+function setC(f){
+  cFile=f;
+  cDrop.classList.add('ok');
+  document.getElementById('cTitle').textContent=f.name;
+  document.getElementById('cSub').textContent=fmt(f.size);
+  document.getElementById('cBtn').disabled=false;
+  document.getElementById('cResult').classList.remove('on');
+  document.getElementById('cProg').classList.remove('on');
+  cBytes=null;
+}
+function pickQ(el){
+  document.querySelectorAll('#pills .pill').forEach(function(p){p.classList.remove('on')});
+  el.classList.add('on');
+}
+
+async function runCompress(){
+  if(!cFile) return;
+  var qEl=document.querySelector('#pills .pill.on');
+  var quality=parseInt(qEl.dataset.q);
+  var baseDpi=parseInt(qEl.dataset.dpi);
+  var dpis=[baseDpi, Math.round(baseDpi*.8), Math.round(baseDpi*.65)];
+  var maxMb=parseFloat(document.getElementById('cMax').value)||20;
+
+  var btn=document.getElementById('cBtn');
+  var bar=document.getElementById('cBar');
+  var pct=document.getElementById('cPct');
+  var lbl=document.getElementById('cLbl');
+  btn.disabled=true;
+  document.getElementById('cResult').classList.remove('on');
+  document.getElementById('cProg').classList.add('on');
+  bar.style.width='0';
+
+  function setP(p,t){bar.style.width=p+'%';pct.textContent=p+'%';if(t)lbl.textContent=t}
+
+  var ab=await cFile.arrayBuffer();
+  var finalBytes=null, finalMb=Infinity;
+
+  for(var i=0;i<dpis.length;i++){
+    var dpi=dpis[i];
+    var base=(i/dpis.length)*80;
+    setP(Math.round(base+5),'Rendering at '+dpi+' DPI...');
+    var copy=ab.slice(0);
+    var pdf=await pdfjsLib.getDocument({data:copy}).promise;
+    var imgs=[];
+    for(var n=1;n<=pdf.numPages;n++){
+      var page=await pdf.getPage(n);
+      var vp=page.getViewport({scale:dpi/72});
+      var canvas=document.createElement('canvas');
+      canvas.width=Math.round(vp.width);canvas.height=Math.round(vp.height);
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+      imgs.push({canvas:canvas,wMm:(canvas.width/dpi)*25.4,hMm:(canvas.height/dpi)*25.4});
+      setP(Math.round(base+5+(n/pdf.numPages)*(80/dpis.length-8)),null);
+    }
+    setP(Math.round(base+80/dpis.length-2),'Packaging...');
+    var doc=null;
+    for(var j=0;j<imgs.length;j++){
+      var img=imgs[j];
+      var orient=img.wMm>img.hMm?'l':'p';
+      if(!doc){doc=new window.jspdf.jsPDF({orientation:orient,unit:'mm',format:[img.wMm,img.hMm]});}
+      else{doc.addPage([img.wMm,img.hMm],orient);}
+      doc.addImage(img.canvas.toDataURL('image/jpeg',quality/100),'JPEG',0,0,img.wMm,img.hMm);
+    }
+    finalBytes=doc.output('arraybuffer');
+    finalMb=finalBytes.byteLength/1024/1024;
+    if(finalMb<=maxMb) break;
+  }
+
+  setP(100,'Done!');
+  cBytes=finalBytes;
+  cName=cFile.name.replace(/\.pdf$/i,'')+'_compressed.pdf';
+  var inMb=cFile.size/1024/1024;
+  document.getElementById('cBefore').textContent=inMb.toFixed(1)+' MB';
+  document.getElementById('cAfter').textContent=finalMb.toFixed(2)+' MB';
+  document.getElementById('cSaved').textContent=Math.max(0,((1-finalMb/inMb)*100)).toFixed(0)+'%';
+  document.getElementById('cResult').classList.add('on');
+  btn.disabled=false;
+}
+document.getElementById('cDl').addEventListener('click',function(){
+  if(cBytes) dl(cBytes,cName,'application/pdf');
+});
+
+// ── Merge ─────────────────────────────────────────────────────────────────────
+var mFiles=[], mBytes=null, mDragIdx=null;
+var mDrop=document.getElementById('mDrop');
+var mInput=document.getElementById('mInput');
+mDrop.addEventListener('click',function(){mInput.click()});
+mDrop.addEventListener('dragover',function(e){e.preventDefault();mDrop.classList.add('over')});
+mDrop.addEventListener('dragleave',function(){mDrop.classList.remove('over')});
+mDrop.addEventListener('drop',function(e){e.preventDefault();mDrop.classList.remove('over');addM(Array.from(e.dataTransfer.files))});
+mInput.addEventListener('change',function(){if(mInput.files.length){addM(Array.from(mInput.files));mInput.value=''}});
+
+function addM(files){
+  mFiles.push.apply(mFiles,files.filter(function(f){return f.name.toLowerCase().endsWith('.pdf')}));
+  renderM();
+}
+function renderM(){
+  var list=document.getElementById('mList');
+  list.innerHTML='';
+  mFiles.forEach(function(f,i){
+    var item=document.createElement('div');
+    item.className='fitem';item.draggable=true;
+    item.innerHTML='<span class="drag-handle">&#8942;</span>'
+      +'<div class="fitem-icon">&#128196;</div>'
+      +'<span class="fitem-name" title="'+f.name+'">'+f.name+'</span>'
+      +'<span class="fitem-size">'+fmt(f.size)+'</span>'
+      +'<button class="fitem-del" onclick="delM('+i+')">&#10005;</button>';
+    item.addEventListener('dragstart',function(){mDragIdx=i;item.classList.add('dragging')});
+    item.addEventListener('dragend',function(){mDragIdx=null;item.classList.remove('dragging');document.querySelectorAll('.fitem').forEach(function(e){e.classList.remove('dtarget')})});
+    item.addEventListener('dragover',function(e){e.preventDefault();item.classList.add('dtarget')});
+    item.addEventListener('dragleave',function(){item.classList.remove('dtarget')});
+    item.addEventListener('drop',function(e){
+      e.preventDefault();
+      if(mDragIdx===null||mDragIdx===i) return;
+      var moved=mFiles.splice(mDragIdx,1)[0];
+      mFiles.splice(i,0,moved);
+      renderM();
+    });
+    list.appendChild(item);
+  });
+  var has=mFiles.length>0;
+  document.getElementById('mAdd').style.display=has?'block':'none';
+  document.getElementById('mTip').style.display=mFiles.length>1?'flex':'none';
+  document.getElementById('mBtn').disabled=mFiles.length<2;
+  mDrop.style.display=has?'none':'flex';
+}
+function delM(i){mFiles.splice(i,1);renderM()}
+
+async function runMerge(){
+  if(mFiles.length<2) return;
+  var btn=document.getElementById('mBtn');
+  var bar=document.getElementById('mBar');
+  var pct=document.getElementById('mPct');
+  var lbl=document.getElementById('mLbl');
+  btn.disabled=true;
+  document.getElementById('mResult').classList.remove('on');
+  document.getElementById('mProg').classList.add('on');
+  bar.style.width='0';
+
+  var doc=null, total=0;
+  for(var fi=0;fi<mFiles.length;fi++){
+    var f=mFiles[fi];
+    var p=Math.round((fi/mFiles.length)*90);
+    bar.style.width=p+'%';pct.textContent=p+'%';
+    lbl.textContent='Reading "'+f.name+'"... ('+(fi+1)+'/'+mFiles.length+')';
+    var pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;
+    for(var n=1;n<=pdf.numPages;n++){
+      var page=await pdf.getPage(n);
+      var vp=page.getViewport({scale:150/72});
+      var canvas=document.createElement('canvas');
+      canvas.width=Math.round(vp.width);canvas.height=Math.round(vp.height);
+      await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+      var wMm=(canvas.width/150)*25.4,hMm=(canvas.height/150)*25.4;
+      var orient=wMm>hMm?'l':'p';
+      if(!doc){doc=new window.jspdf.jsPDF({orientation:orient,unit:'mm',format:[wMm,hMm]});}
+      else{doc.addPage([wMm,hMm],orient);}
+      doc.addImage(canvas.toDataURL('image/jpeg',.88),'JPEG',0,0,wMm,hMm);
+      total++;
+    }
+  }
+  bar.style.width='100%';pct.textContent='100%';lbl.textContent='Done!';
+  mBytes=doc.output('arraybuffer');
+  document.getElementById('mPages').textContent=total;
+  document.getElementById('mCount').textContent=mFiles.length;
+  document.getElementById('mSize').textContent=fmt(mBytes.byteLength);
+  document.getElementById('mResult').classList.add('on');
+  btn.disabled=false;
+}
+document.getElementById('mDl').addEventListener('click',function(){
+  if(mBytes) dl(mBytes,'merged.pdf','application/pdf');
+});
+</script>
+</body>
+</html>
