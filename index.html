@@ -200,8 +200,9 @@ input[type="file"] { display: none; }
     <div class="offline-icon">💾</div>
     <div class="offline-body">
       <strong>Need to use this without internet?</strong>
-      <p>Click below to download a copy that works forever on any computer — even with no internet connection. Nothing ever touches a server.</p>
-      <button class="btn-offline" id="offlineBtn" onclick="buildOfflineVersion()">⬇ Download offline version</button>
+      <p>Download a package that works forever on any computer with no connection. You'll get a zip file — just unzip it and open <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:0.78rem;">index.html</code> inside.<br>
+      <span style="font-size:0.75rem;color:var(--text3);">Windows: right-click the zip → Extract All &nbsp;·&nbsp; Mac: double-click it</span></p>
+      <button class="btn-offline" id="offlineBtn" onclick="buildOfflineVersion()">⬇ Download offline package</button>
       <div class="offline-steps" id="offlineSteps"></div>
     </div>
   </div>
@@ -328,15 +329,15 @@ function triggerDownload(bytes, filename, mime) {
 // ── Offline builder ───────────────────────────────────────────────────────────
 
 async function buildOfflineVersion() {
-  const btn      = document.getElementById('offlineBtn');
-  const stepsEl  = document.getElementById('offlineSteps');
-  btn.disabled = true;
+  const btn     = document.getElementById('offlineBtn');
+  const stepsEl = document.getElementById('offlineSteps');
+  btn.disabled  = true;
 
   const steps = [
     'Downloading PDF reader…',
     'Downloading PDF worker…',
     'Downloading PDF builder…',
-    'Assembling your file…',
+    'Creating your package…',
   ];
   let doneCount = 0;
 
@@ -359,35 +360,37 @@ async function buildOfflineVersion() {
     const jspdfJs  = await fetch('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js').then(r => r.text());
     doneCount=3; renderSteps(3);
 
-    const pageHtml = await fetch(window.location.href).then(r => r.text());
-    // Encode worker as JSON string — safe against backticks, backslashes, etc.
-    const workerEncoded = JSON.stringify(workerJs);
+    // Read the live DOM — no fetch, no escaping mismatch
+    let offline = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-    // Inline worker setup: decode JSON string → Blob → object URL at runtime
-    const workerSetup = `var _w=${workerEncoded};var _b=new Blob([_w],{type:'application/javascript'});pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(_b);`;
+    // Build </script> tag safely — can't write it literally inside a <script> block
+    const SC = '<' + '/script>';
+    const SO = '<script>';
 
-    let offline = pageHtml
+    // Inline the worker via Blob URL — works in all browsers, no data URI issues
+    const workerBlob = 'pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([' + JSON.stringify(workerJs) + '],{type:"application/javascript"}));';
+
+    offline = offline
       .replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/g, '')
+      .replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">' + SC, SO + pdfjsJs + SC)
+      .replace('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">' + SC, SO + jspdfJs + SC)
       .replace(
-        '<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>',
-        `<script>${pdfjsJs}<\/script>`
-      )
-      .replace(
-        '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>',
-        `<script>${jspdfJs}<\/script>`
-      )
-      .replace(
-        `pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';`,
-        workerSetup
+        "pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';",
+        workerBlob
       )
       .replace(/<!-- OFFLINE-SECTION-START -->[\s\S]*?<!-- OFFLINE-SECTION-END -->/g, '');
 
     doneCount=4; renderSteps(-1);
-    triggerDownload(new TextEncoder().encode(offline), 'pdf-toolkit-offline.html', 'text/html');
-    btn.textContent = '✓ Downloaded!';
-    btn.disabled = false;
+    const enc  = new TextEncoder().encode(offline);
+    const blob = new Blob([enc], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: 'pdf-toolkit-offline.html' });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 
-  } catch (err) {
+    btn.textContent = '✓ Downloaded!';
+    btn.disabled    = false;
+
+  } catch(err) {
     stepsEl.innerHTML = `<div class="offline-step" style="color:var(--accent)">❌ Something went wrong. Check your internet connection and try again.</div>`;
     btn.disabled = false;
   }
