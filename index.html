@@ -726,24 +726,43 @@ async function loadSplit(file){
 async function renderSplitGrid(total){
   const grid = document.getElementById('sGrid');
   grid.innerHTML = '<div class="sp-loading" id="sGridLoading">Rendering pages…</div>';
+  // Pre-create all cell placeholders so DOM order is preserved regardless of render speed
+  const cells = [];
   for(let i = 1; i <= total; i++){
-    const page = await sPdfDoc.getPage(i);
-    const vp   = page.getViewport({scale: 0.3});
-    const canvas = document.createElement('canvas');
-    canvas.width = vp.width; canvas.height = vp.height;
-    await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
     const cell = document.createElement('div');
     cell.className = 'sp-page';
     cell.dataset.page = i;
-    cell.appendChild(canvas);
+    const ph = document.createElement('div');
+    ph.style.cssText = 'width:100%;padding-bottom:141%;background:var(--sur3);border-radius:6px';
+    cell.appendChild(ph);
     const num = document.createElement('div');
     num.className = 'sp-num';
     num.textContent = 'p' + i;
     cell.appendChild(num);
     cell.addEventListener('click', () => spTogglePage(i));
-    const loader = document.getElementById('sGridLoading');
-    if(loader) loader.remove();
-    grid.appendChild(cell);
+    cells.push(cell);
+  }
+  // Remove loader + append all placeholders in one single DOM write
+  const loader = document.getElementById('sGridLoading');
+  if(loader) loader.remove();
+  const frag = document.createDocumentFragment();
+  cells.forEach(c => frag.appendChild(c));
+  grid.appendChild(frag);
+  // Render pages in parallel batches — each cell updates as soon as it's ready
+  const CONCURRENCY = 6;
+  for(let batch = 0; batch < total; batch += CONCURRENCY){
+    const tasks = [];
+    for(let i = batch + 1; i <= Math.min(batch + CONCURRENCY, total); i++){
+      tasks.push((async (n) => {
+        const page = await sPdfDoc.getPage(n);
+        const vp   = page.getViewport({scale: 0.28});
+        const canvas = document.createElement('canvas');
+        canvas.width = vp.width; canvas.height = vp.height;
+        await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
+        cells[n - 1].replaceChild(canvas, cells[n - 1].firstChild);
+      })(i));
+    }
+    await Promise.all(tasks);
   }
 }
 
