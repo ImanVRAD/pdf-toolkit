@@ -415,8 +415,8 @@ input[type=file]{display:none}
 
     <div id="sControls" style="display:none">
       <p class="pills-label">Which pages? <span style="font-weight:400;color:var(--tx3)">(e.g. 1-3, 5, 7-9)</span></p>
-      <input type="text" class="sp-range" id="sRange" placeholder="e.g. 1-3, 5, 8-10 &mdash; or click pages below">
-      <p class="sp-hint">Separate pages or ranges with commas. Leave blank to extract all pages.</p>
+      <input type="text" class="sp-range" id="sRange" placeholder="e.g. 1-3, 5 ; 7-9 &mdash; semicolon = separate file">
+      <p class="sp-hint">Use commas for pages within one file, semicolons to create separate files. E.g. <b>1-3 ; 5-6</b> makes two PDFs.</p>
 
       <div class="sp-sel-bar">
         <div>Selected: <span id="sSelCount">0</span> pages</div>
@@ -454,7 +454,7 @@ function goHome(){document.querySelectorAll('.screen').forEach(function(s){s.cla
 function fmt(b){var m=b/1024/1024;return m<0.1?(b/1024).toFixed(0)+' KB':m.toFixed(2)+' MB'}
 function dlFile(bytes,name,mime){var b=new Blob([bytes],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Images to PDF ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Images to PDF ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 var iFiles=[],iBytes=null,iDragIdx=null;
 var iDrop=document.getElementById('iDrop'),iIn=document.getElementById('iIn');
 iDrop.addEventListener('click',function(){iIn.click()});
@@ -688,7 +688,7 @@ async function runM(){
 document.getElementById('mDl').addEventListener('click',function(){if(mBytes)dlFile(mBytes,'merged.pdf','application/pdf')});
 
 
-// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Split PDF Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Split PDF ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
 let sPdfJsDoc = null, sPages = [], sTotalPages = 0, sObserver = null;
 
 (function(){
@@ -709,11 +709,11 @@ async function loadSplit(file){
   window.__splitFile = file;
   document.getElementById('sDrop').classList.add('ok');
   document.getElementById('sT').textContent = file.name;
-  document.getElementById('sSub').textContent = fmt(file.size) + ' · Loading…';
+  document.getElementById('sSub').textContent = fmt(file.size) + ' Â· Loadingâ¦';
   const buf = await file.arrayBuffer();
   sPdfJsDoc = await pdfjsLib.getDocument({data: buf}).promise;
   sTotalPages = sPdfJsDoc.numPages;
-  document.getElementById('sSub').textContent = fmt(file.size) + ' · ' + sTotalPages + ' pages';
+  document.getElementById('sSub').textContent = fmt(file.size) + ' Â· ' + sTotalPages + ' pages';
   sPages = [];
   document.getElementById('sRes').classList.remove('on');
   document.getElementById('sPg').style.display = 'none';
@@ -814,10 +814,15 @@ function parseRange(str, total){
 
 async function runS(){
   const total = sTotalPages;
-  const rangeStr = document.getElementById('sRange').value.trim();
-  const pagesToExtract = sPages.length ? [...sPages].sort((a,b)=>a-b)
-    : (rangeStr ? parseRange(rangeStr, total) : Array.from({length:total},(_,i)=>i+1));
-  if(!pagesToExtract.length){ alert('No valid pages selected.'); return; }
+  const fullRangeStr = document.getElementById('sRange').value.trim();
+  const groups = fullRangeStr
+    ? fullRangeStr.split(';').map(s => s.trim()).filter(s => s.length > 0)
+    : [''];
+  const resolvedGroups = groups.map(g => ({
+    rangeStr: g,
+    pages: g ? parseRange(g, total) : Array.from({length: total}, (_, i) => i + 1)
+  })).filter(g => g.pages.length > 0);
+  if(!resolvedGroups.length){ alert('No valid pages found.'); return; }
 
   const btn = document.getElementById('sBtn');
   btn.disabled = true;
@@ -830,38 +835,45 @@ async function runS(){
 
   const fileBytes = await window.__splitFile.arrayBuffer();
   const srcDoc = await PDFLib.PDFDocument.load(fileBytes);
-
-  document.getElementById('sBar').style.width = '40%';
-  document.getElementById('sPct').textContent = '40%';
-  document.getElementById('sLbl').textContent = 'Extracting pages…';
-
-  const newDoc = await PDFLib.PDFDocument.create();
-  const copied = await newDoc.copyPages(srcDoc, pagesToExtract.map(n => n - 1));
-  copied.forEach(p => newDoc.addPage(p));
-
-  document.getElementById('sBar').style.width = '80%';
-  document.getElementById('sPct').textContent = '80%';
-  document.getElementById('sLbl').textContent = 'Saving…';
-
-  const bytes = await newDoc.save();
-  document.getElementById('sBar').style.width = '100%';
-  document.getElementById('sPct').textContent = '100%';
-
   const baseName = document.getElementById('sT').textContent.replace(/\.pdf$/i, '');
-  const suffix = rangeStr ? '_pages_' + rangeStr.replace(/\s/g,'').replace(/,/g,'+') : '_all_pages';
-  const fname = baseName + suffix + '.pdf';
 
   const dlList = document.getElementById('sDlList');
   dlList.innerHTML = '';
-  const dlBtn = document.createElement('button');
-  dlBtn.className = 'bdl';
-  dlBtn.innerHTML = '&#8595; Save ' + fname + ' (' + fmt(bytes.byteLength) + ')';
-  dlBtn.onclick = () => dlFile(bytes, fname, 'application/pdf');
-  dlList.appendChild(dlBtn);
 
+  for(let gi = 0; gi < resolvedGroups.length; gi++){
+    const {rangeStr: gStr, pages} = resolvedGroups[gi];
+    const pct = Math.round(10 + ((gi + 1) / resolvedGroups.length) * 85);
+    document.getElementById('sBar').style.width = pct + '%';
+    document.getElementById('sPct').textContent = pct + '%';
+    document.getElementById('sLbl').textContent = resolvedGroups.length > 1
+      ? 'Building file ' + (gi + 1) + ' of ' + resolvedGroups.length + '…'
+      : 'Building PDF…';
+
+    const newDoc = await PDFLib.PDFDocument.create();
+    const copied = await newDoc.copyPages(srcDoc, pages.map(n => n - 1));
+    copied.forEach(p => newDoc.addPage(p));
+    const bytes = await newDoc.save();
+
+    const suffix = resolvedGroups.length > 1
+      ? '_part' + (gi + 1) + (gStr ? '_p' + gStr.replace(/\s/g,'').replace(/,/g,'+') : '')
+      : (gStr ? '_pages_' + gStr.replace(/\s/g,'').replace(/,/g,'+') : '_all_pages');
+    const fname = baseName + suffix + '.pdf';
+
+    const dlBtn = document.createElement('button');
+    dlBtn.className = 'bdl';
+    dlBtn.style.marginBottom = '0';
+    dlBtn.innerHTML = '&#8595; Save ' + fname + ' (' + fmt(bytes.byteLength) + ')';
+    dlBtn.onclick = (b => () => dlFile(b, fname, 'application/pdf'))(bytes);
+    dlList.appendChild(dlBtn);
+  }
+
+  document.getElementById('sBar').style.width = '100%';
+  document.getElementById('sPct').textContent = '100%';
+
+  const totalExtracted = resolvedGroups.reduce((s, g) => s + g.pages.length, 0);
   document.getElementById('sStats').innerHTML =
-    '<div><div class="sl">Pages extracted</div><div class="sv">' + pagesToExtract.length + ' / ' + total + '</div></div>' +
-    '<div><div class="sl">Output size</div><div class="sv">' + fmt(bytes.byteLength) + '</div></div>';
+    '<div><div class="sl">Files created</div><div class="sv">' + resolvedGroups.length + '</div></div>' +
+    '<div><div class="sl">Pages extracted</div><div class="sv">' + totalExtracted + ' / ' + total + '</div></div>';
 
   document.getElementById('sRes').classList.add('on');
   pg.style.display = 'none';
