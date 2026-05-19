@@ -18,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
 :root{
   --bg:#000;--sur:#111;--sur2:#1a1a1a;--sur3:#222;
@@ -216,6 +217,19 @@ input[type=file]{display:none}
 .sp-range:focus{border-color:var(--ac)}
 .sp-range::placeholder{color:var(--tx3)}
 .sp-hint{font-size:.78rem;color:var(--tx3);margin-top:.4rem;margin-bottom:1.25rem}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.65rem;margin-bottom:1.25rem;max-height:400px;overflow-y:auto}
+.sp-page{position:relative;border:2px solid var(--brd);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .18s,transform .15s;background:var(--sur2)}
+.sp-page:hover{border-color:var(--brd2);transform:scale(1.03)}
+.sp-page.sel{border-color:var(--ac);box-shadow:0 0 0 2px var(--acl)}
+.sp-page canvas{width:100%;height:auto;display:block}
+.sp-ph{width:100%;padding-bottom:141%;background:var(--sur3);border-radius:4px}
+.sp-num{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:.65rem;font-weight:700;color:var(--tx2);background:rgba(0,0,0,.6);padding:3px 0}
+.sp-page.sel .sp-num{color:var(--ac)}
+.sp-sel-bar{display:flex;align-items:center;justify-content:space-between;background:var(--sur);border:1px solid var(--brd);border-radius:var(--rs);padding:.6rem 1rem;margin-bottom:1rem;font-size:.85rem;color:var(--tx2)}
+.sp-sel-bar span{font-weight:700;color:var(--ac)}
+.sp-sel-actions{display:flex;gap:.5rem}
+.sp-sel-btn{background:none;border:1px solid var(--brd2);border-radius:6px;color:var(--tx2);font-size:.75rem;padding:.25rem .6rem;cursor:pointer;font-family:inherit;transition:all .15s}
+.sp-sel-btn:hover{border-color:var(--ac);color:var(--ac)}
 
 </style>
 </head>
@@ -266,8 +280,8 @@ input[type=file]{display:none}
       <div class="ti" style="background:rgba(255,214,10,.13)">&#128247;</div><h3>Images to PDF</h3>
       <p>Combine JPG, PNG or other images into one PDF file</p>
     </div>
-        <div class="tc" onclick="go('sS')">
-      <div class="ti" style="background:rgba(48,209,88,.13)">âï¸</div><h3>Split</h3>
+            <div class="tc" onclick="go('sS')">
+      <div class="ti" style="background:rgba(48,209,88,.13)">&#9986;</div><h3>Split</h3>
       <p>Pull individual pages out of a PDF</p>
     </div>
     <div class="tc soon">
@@ -388,12 +402,12 @@ input[type=file]{display:none}
 
   <div class="screen" id="sS">
     <div class="th">
-      <h2>✂️ Split PDF</h2>
-      <p>Extract specific pages from a PDF by typing a page range</p>
+      <h2>&#9986; Split PDF</h2>
+      <p>Extract specific pages from a PDF &mdash; type a range or click pages visually</p>
     </div>
 
     <div class="drop" id="sDrop" onclick="document.getElementById('sIn').click()">
-      <div class="di">✂️</div>
+      <div class="di">&#9986;</div>
       <h3 id="sT">Drop your PDF here</h3>
       <p id="sSub">or click to choose a file</p>
       <input type="file" id="sIn" accept="application/pdf" style="display:none">
@@ -401,18 +415,29 @@ input[type=file]{display:none}
 
     <div id="sControls" style="display:none">
       <p class="pills-label">Which pages? <span style="font-weight:400;color:var(--tx3)">(e.g. 1-3, 5, 7-9)</span></p>
-      <input type="text" class="sp-range" id="sRange" placeholder="e.g. 1-3, 5, 8-10  —  leave blank for all pages">
-      <p class="sp-hint">Separate individual pages or ranges with commas. Leave blank to extract all pages.</p>
+      <input type="text" class="sp-range" id="sRange" placeholder="e.g. 1-3, 5, 8-10 &mdash; or click pages below">
+      <p class="sp-hint">Separate pages or ranges with commas. Leave blank to extract all pages.</p>
+
+      <div class="sp-sel-bar">
+        <div>Selected: <span id="sSelCount">0</span> pages</div>
+        <div class="sp-sel-actions">
+          <button class="sp-sel-btn" onclick="spSelAll()">All</button>
+          <button class="sp-sel-btn" onclick="spSelNone()">None</button>
+        </div>
+      </div>
+
+      <div class="sp-grid" id="sGrid"></div>
+
       <button class="btn" id="sBtn" onclick="runS()">Extract pages</button>
     </div>
 
     <div class="pg" id="sPg">
-      <div class="pg-lbl"><span id="sLbl">Extracting…</span><span class="pg-tr"><span id="sPct">0%</span></span></div>
+      <div class="pg-lbl"><span id="sLbl">Extracting&hellip;</span><span class="pg-tr"><span id="sPct">0%</span></span></div>
       <div class="pg-fi" id="sBar" style="width:0%"></div>
     </div>
 
     <div class="res" id="sRes">
-      <div class="re">✅</div>
+      <div class="re">&#10003;</div>
       <h3>Done!</h3>
       <div class="sts" id="sStats"></div>
       <div id="sDlList" style="margin-top:1rem;display:flex;flex-direction:column;gap:.6rem"></div>
@@ -429,7 +454,7 @@ function goHome(){document.querySelectorAll('.screen').forEach(function(s){s.cla
 function fmt(b){var m=b/1024/1024;return m<0.1?(b/1024).toFixed(0)+' KB':m.toFixed(2)+' MB'}
 function dlFile(bytes,name,mime){var b=new Blob([bytes],{type:mime});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
 
-/* Ã¢ÂÂÃ¢ÂÂ Images to PDF Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
+/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Images to PDF ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
 var iFiles=[],iBytes=null,iDragIdx=null;
 var iDrop=document.getElementById('iDrop'),iIn=document.getElementById('iIn');
 iDrop.addEventListener('click',function(){iIn.click()});
@@ -663,8 +688,8 @@ async function runM(){
 document.getElementById('mDl').addEventListener('click',function(){if(mBytes)dlFile(mBytes,'merged.pdf','application/pdf')});
 
 
-// âââ Split PDF ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-let sPdfLibDoc = null, sFileBytes = null;
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ Split PDF Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+let sPdfJsDoc = null, sPages = [], sTotalPages = 0, sObserver = null;
 
 (function(){
   const drop = document.getElementById('sDrop');
@@ -676,52 +701,142 @@ let sPdfLibDoc = null, sFileBytes = null;
     if(e.dataTransfer.files[0]) loadSplit(e.dataTransfer.files[0]);
   });
   inp.addEventListener('change', () => { if(inp.files[0]) loadSplit(inp.files[0]); });
+  document.getElementById('sRange').addEventListener('input', spSyncRangeToGrid);
 })();
 
 async function loadSplit(file){
   if(file.type !== 'application/pdf') return;
+  window.__splitFile = file;
   document.getElementById('sDrop').classList.add('ok');
   document.getElementById('sT').textContent = file.name;
   document.getElementById('sSub').textContent = fmt(file.size) + ' · Loading…';
-  sFileBytes = await file.arrayBuffer();
-  sPdfLibDoc = await PDFLib.PDFDocument.load(sFileBytes);
-  const total = sPdfLibDoc.getPageCount();
-  document.getElementById('sSub').textContent = fmt(file.size) + ' · ' + total + ' pages';
+  const buf = await file.arrayBuffer();
+  sPdfJsDoc = await pdfjsLib.getDocument({data: buf}).promise;
+  sTotalPages = sPdfJsDoc.numPages;
+  document.getElementById('sSub').textContent = fmt(file.size) + ' · ' + sTotalPages + ' pages';
+  sPages = [];
   document.getElementById('sRes').classList.remove('on');
   document.getElementById('sPg').style.display = 'none';
   document.getElementById('sRange').value = '';
+  document.getElementById('sSelCount').textContent = '0';
   document.getElementById('sControls').style.display = 'block';
+  renderSplitGrid(sTotalPages);
 }
 
-function parseRange(str, total){
-  if(!str.trim()) return Array.from({length: total}, (_, i) => i + 1);
-  const pages = new Set();
-  str.split(',').forEach(part => {
-    part = part.trim();
-    const m = part.match(/^(\d+)-(\d+)$/);
-    if(m){ for(let i = +m[1]; i <= Math.min(+m[2], total); i++) pages.add(i); }
-    else if(/^\d+$/.test(part)){ const n = +part; if(n >= 1 && n <= total) pages.add(n); }
+function renderSplitGrid(total){
+  if(sObserver) sObserver.disconnect();
+  const grid = document.getElementById('sGrid');
+  grid.innerHTML = '';
+  sObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      const cell = entry.target;
+      if(cell.dataset.rendered) return;
+      cell.dataset.rendered = '1';
+      sObserver.unobserve(cell);
+      const n = +cell.dataset.page;
+      sPdfJsDoc.getPage(n).then(page => {
+        const vp = page.getViewport({scale: 0.25});
+        const canvas = document.createElement('canvas');
+        canvas.width = vp.width; canvas.height = vp.height;
+        page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise.then(() => {
+          const ph = cell.querySelector('.sp-ph');
+          if(ph) cell.replaceChild(canvas, ph);
+        });
+      });
+    });
+  }, {rootMargin: '200px'});
+  const frag = document.createDocumentFragment();
+  for(let i = 1; i <= total; i++){
+    const cell = document.createElement('div');
+    cell.className = 'sp-page';
+    cell.dataset.page = i;
+    const ph = document.createElement('div');
+    ph.className = 'sp-ph';
+    cell.appendChild(ph);
+    const num = document.createElement('div');
+    num.className = 'sp-num';
+    num.textContent = 'p' + i;
+    cell.appendChild(num);
+    cell.addEventListener('click', () => spToggle(i));
+    frag.appendChild(cell);
+    sObserver.observe(cell);
+  }
+  grid.appendChild(frag);
+}
+
+function spToggle(n){
+  const cell = document.querySelector('.sp-page[data-page="' + n + '"]');
+  if(!cell) return;
+  if(sPages.includes(n)){ sPages = sPages.filter(p => p !== n); cell.classList.remove('sel'); }
+  else { sPages.push(n); cell.classList.add('sel'); }
+  spUpdateCount(); spSyncGridToRange();
+}
+function spSelAll(){
+  sPages = [];
+  document.querySelectorAll('.sp-page').forEach(c => { sPages.push(+c.dataset.page); c.classList.add('sel'); });
+  spUpdateCount(); spSyncGridToRange();
+}
+function spSelNone(){
+  sPages = [];
+  document.querySelectorAll('.sp-page').forEach(c => c.classList.remove('sel'));
+  document.getElementById('sRange').value = '';
+  spUpdateCount();
+}
+function spUpdateCount(){ document.getElementById('sSelCount').textContent = sPages.length; }
+function spSyncGridToRange(){
+  if(!sPages.length){ document.getElementById('sRange').value = ''; return; }
+  const s = [...sPages].sort((a,b)=>a-b);
+  const ranges = []; let a = s[0], b = s[0];
+  for(let i=1;i<s.length;i++){ if(s[i]===b+1){b=s[i];}else{ranges.push(a===b?a:a+'-'+b);a=b=s[i];} }
+  ranges.push(a===b?a:a+'-'+b);
+  document.getElementById('sRange').value = ranges.join(', ');
+}
+function spSyncRangeToGrid(){
+  const pages = parseRange(document.getElementById('sRange').value, sTotalPages);
+  sPages = pages;
+  document.querySelectorAll('.sp-page').forEach(c => {
+    pages.includes(+c.dataset.page) ? c.classList.add('sel') : c.classList.remove('sel');
   });
-  return [...pages].sort((a,b) => a - b);
+  spUpdateCount();
+}
+function parseRange(str, total){
+  if(!str.trim()) return [];
+  const set = new Set();
+  str.split(',').forEach(p => {
+    p = p.trim();
+    const m = p.match(/^(\d+)-(\d+)$/);
+    if(m){ for(let i=+m[1];i<=Math.min(+m[2],total);i++) set.add(i); }
+    else if(/^\d+$/.test(p)){ const n=+p; if(n>=1&&n<=total) set.add(n); }
+  });
+  return [...set].sort((a,b)=>a-b);
 }
 
 async function runS(){
-  const total = sPdfLibDoc.getPageCount();
+  const total = sTotalPages;
   const rangeStr = document.getElementById('sRange').value.trim();
-  const pagesToExtract = parseRange(rangeStr, total);
-  if(!pagesToExtract.length){ alert('No valid pages in that range. The document has ' + total + ' pages.'); return; }
+  const pagesToExtract = sPages.length ? [...sPages].sort((a,b)=>a-b)
+    : (rangeStr ? parseRange(rangeStr, total) : Array.from({length:total},(_,i)=>i+1));
+  if(!pagesToExtract.length){ alert('No valid pages selected.'); return; }
 
   const btn = document.getElementById('sBtn');
   btn.disabled = true;
   document.getElementById('sRes').classList.remove('on');
   const pg = document.getElementById('sPg');
   pg.style.display = 'block';
-  document.getElementById('sBar').style.width = '5%';
-  document.getElementById('sPct').textContent = '5%';
-  document.getElementById('sLbl').textContent = 'Building PDF…';
+  document.getElementById('sBar').style.width = '10%';
+  document.getElementById('sPct').textContent = '10%';
+  document.getElementById('sLbl').textContent = 'Loading PDF…';
+
+  const fileBytes = await window.__splitFile.arrayBuffer();
+  const srcDoc = await PDFLib.PDFDocument.load(fileBytes);
+
+  document.getElementById('sBar').style.width = '40%';
+  document.getElementById('sPct').textContent = '40%';
+  document.getElementById('sLbl').textContent = 'Extracting pages…';
 
   const newDoc = await PDFLib.PDFDocument.create();
-  const copied = await newDoc.copyPages(sPdfLibDoc, pagesToExtract.map(n => n - 1));
+  const copied = await newDoc.copyPages(srcDoc, pagesToExtract.map(n => n - 1));
   copied.forEach(p => newDoc.addPage(p));
 
   document.getElementById('sBar').style.width = '80%';
@@ -736,14 +851,12 @@ async function runS(){
   const suffix = rangeStr ? '_pages_' + rangeStr.replace(/\s/g,'').replace(/,/g,'+') : '_all_pages';
   const fname = baseName + suffix + '.pdf';
 
-  const blob = new Blob([bytes], {type: 'application/pdf'});
-  const url  = URL.createObjectURL(blob);
   const dlList = document.getElementById('sDlList');
   dlList.innerHTML = '';
   const dlBtn = document.createElement('button');
   dlBtn.className = 'bdl';
   dlBtn.innerHTML = '&#8595; Save ' + fname + ' (' + fmt(bytes.byteLength) + ')';
-  dlBtn.onclick = () => dlFile(url, fname);
+  dlBtn.onclick = () => dlFile(bytes, fname, 'application/pdf');
   dlList.appendChild(dlBtn);
 
   document.getElementById('sStats').innerHTML =
